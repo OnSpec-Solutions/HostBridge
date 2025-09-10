@@ -1,0 +1,13 @@
+﻿<Project>
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <!-- Tests can use newer language features even if some src targets net472 -->
+    <PropertyGroup Condition="'$(MSBuildProjectName)' EndsWith('.Tests')">
+        <LangVersion>latest</LangVersion>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+</Project>
