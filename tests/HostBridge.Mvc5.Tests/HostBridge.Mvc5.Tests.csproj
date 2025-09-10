@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net472;net48;net481</TargetFrameworks>
-        <LangVersion>latest</LangVersion>
+        <TargetFrameworks>net472;net48</TargetFrameworks>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
@@ -17,10 +16,6 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Using Include="Xunit" />
     </ItemGroup>
 
     <ItemGroup>
