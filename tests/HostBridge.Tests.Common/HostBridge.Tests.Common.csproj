@@ -4,4 +4,15 @@
         <TargetFrameworks>net472;net48</TargetFrameworks>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\HostBridge.Abstractions\HostBridge.Abstractions.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.Health\HostBridge.Health.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="6.12.1" />
+        <PackageReference Include="Shouldly" Version="4.2.1" />
+        <PackageReference Include="TestStack.BDDfy" Version="4.3.2" />
+    </ItemGroup>
+
 </Project>
