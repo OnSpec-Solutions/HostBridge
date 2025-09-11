@@ -1,13 +1,26 @@
 ﻿<Project>
+    <!-- defaults for src + tests -->
     <PropertyGroup>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
-    <!-- Tests can use newer language features even if some src targets net472 -->
-    <PropertyGroup Condition="'$(MSBuildProjectName)' EndsWith('.Tests')">
-        <LangVersion>latest</LangVersion>
+    <!-- Enable XML docs for libraries in src (not tests/examples) -->
+    <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src')) and !$(MSBuildProjectName.EndsWith('.Tests')) and !$(MSBuildProjectDirectory.Contains('examples'))">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
+
+    <!-- relax tests -->
+    <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <!-- revert for example apps -->
+    <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('examples'))">
+        <LangVersion>default</LangVersion>
+        <Nullable>disable</Nullable>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     </PropertyGroup>
 </Project>
