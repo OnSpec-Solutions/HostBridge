@@ -61,10 +61,13 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Global.asax" />
+    <Content Include="README.md" />
     <Content Include="Service1.svc" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Global.asax.cs" />
     <Compile Include="Service1.svc.cs">
       <DependentUpon>Service1.svc</DependentUpon>
     </Compile>
@@ -73,6 +76,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HostBridge.Abstractions\HostBridge.Abstractions.csproj">
+      <Name>HostBridge.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.Core\HostBridge.Core.csproj">
+      <Name>HostBridge.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.Wcf\HostBridge.Wcf.csproj">
+      <Name>HostBridge.Wcf</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Web.Debug.config">

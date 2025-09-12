@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="README.md" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +120,23 @@
     <Folder Include="App_Data\" />
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HostBridge.Abstractions\HostBridge.Abstractions.csproj">
+      <Name>HostBridge.Abstractions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.AspNet\HostBridge.AspNet.csproj">
+      <Name>HostBridge.AspNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.Core\HostBridge.Core.csproj">
+      <Name>HostBridge.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.WebApi2\HostBridge.WebApi2.csproj">
+      <Name>HostBridge.WebApi2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.Diagnostics\HostBridge.Diagnostics.csproj">
+      <Name>HostBridge.Diagnostics</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

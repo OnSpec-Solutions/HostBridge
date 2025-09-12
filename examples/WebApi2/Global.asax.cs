@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Http;
-using System.Web.Routing;
+using HostBridge.Core;
+using HostBridge.AspNet;
+using HostBridge.WebApi2;
+using HostBridge.Diagnostics;
 
 namespace WebApi2
 {
@@ -11,7 +10,17 @@ namespace WebApi2
     {
         protected void Application_Start()
         {
+            var host = new LegacyHostBuilder().Build();
+
+            AspNetBootstrapper.Initialize(host);
             GlobalConfiguration.Configure(WebApiConfig.Register);
+            GlobalConfiguration.Configuration.DependencyResolver = new WebApiDependencyResolver();
+
+#if DEBUG
+            new HostBridgeVerifier()
+                .Add(AspNetChecks.VerifyAspNet)
+                .ThrowIfCritical();
+#endif
         }
     }
 }
