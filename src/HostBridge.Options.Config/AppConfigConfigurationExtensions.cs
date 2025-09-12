@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace HostBridge.Options.Config;
+﻿namespace HostBridge.Options.Config;
 
 /// <summary>
 /// Extension methods to add HostBridge legacy app.config/web.config configuration.

@@ -1,11 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
-
-using Microsoft.Extensions.Configuration;
-
-using ConfigurationManager = System.Configuration.ConfigurationManager;
-
-namespace HostBridge.Options.Config;
+﻿namespace HostBridge.Options.Config;
 
 /// <summary>
 /// A configuration provider that reads legacy appSettings and connectionStrings

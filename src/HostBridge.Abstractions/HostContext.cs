@@ -1,8 +1,4 @@
-﻿using JetBrains.Annotations;
-
-using Microsoft.Extensions.Configuration;
-
-namespace HostBridge.Abstractions;
+﻿namespace HostBridge.Abstractions;
 
 /// <summary>
 /// Provides information about the current hosting environment.
@@ -16,7 +12,6 @@ public interface IHostContext
     /// <summary>
     /// Gets the name of the current environment, e.g. "Development", "Staging", or "Production".
     /// </summary>
-    [UsedImplicitly]
     string EnvironmentName { get; }
 }
 
@@ -36,12 +31,10 @@ public sealed class HostContext(IConfiguration configuration, IHostContext envir
     /// <summary>
     /// Gets the application configuration.
     /// </summary>
-    [UsedImplicitly]
     public IConfiguration Configuration => configuration;
 
     /// <summary>
     /// Gets the environment context.
     /// </summary>
-    [UsedImplicitly]
     public IHostContext Environment => environment;
 }

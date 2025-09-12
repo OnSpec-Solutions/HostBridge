@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace HostBridge.Options.Config;
+﻿namespace HostBridge.Options.Config;
 
 /// <summary>
 /// A configuration source that exposes values from legacy .NET app.config/web.config files.

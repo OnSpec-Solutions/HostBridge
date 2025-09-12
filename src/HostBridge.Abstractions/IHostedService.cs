@@ -1,9 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-using JetBrains.Annotations;
-
-namespace HostBridge.Abstractions;
+﻿namespace HostBridge.Abstractions;
 
 /// <summary>
 /// Defines a long-running background service with explicit start and stop semantics.

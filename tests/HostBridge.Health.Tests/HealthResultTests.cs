@@ -1,10 +1,4 @@
-﻿using FluentAssertions;
-
-using Shouldly;
-using TestStack.BDDfy;
-using Xunit;
-
-namespace HostBridge.Health.Tests;
+﻿namespace HostBridge.Health.Tests;
 
 public class HealthResultTests
 {
@@ -70,6 +64,7 @@ public class HealthResultTests
     private void WhenUnhealthyFactoryCalled() => _result = HealthResult.Unhealthy(_desc);
 
     private void ThenStatusIs(HealthStatus status) => _result.Status.ShouldBe(status);
+
     private void ThenDescriptionIs(string? expected)
     {
         if (expected is null)

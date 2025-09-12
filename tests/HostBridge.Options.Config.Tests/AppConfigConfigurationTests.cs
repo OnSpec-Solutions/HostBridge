@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Shouldly;
-using TestStack.BDDfy;
-using Xunit;
-
-namespace HostBridge.Options.Config.Tests;
+﻿namespace HostBridge.Options.Config.Tests;
 
 public class AppConfigConfigurationTests
 {

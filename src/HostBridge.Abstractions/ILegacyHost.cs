@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using JetBrains.Annotations;
-
-namespace HostBridge.Abstractions;
+﻿namespace HostBridge.Abstractions;
 
 /// <summary>
 /// Represents a simple host that can start and stop background services and exposes a service provider.
@@ -23,7 +17,6 @@ public interface ILegacyHost : IDisposable
     /// <summary>
     /// Gets the root <see cref="IServiceProvider"/> for resolving services.
     /// </summary>
-    [UsedImplicitly]
     IServiceProvider ServiceProvider { get; }
 
     /// <summary>
