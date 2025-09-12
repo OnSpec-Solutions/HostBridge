@@ -1,4 +1,5 @@
-﻿using HostBridge.AspNet;
+﻿using HostBridge.Abstractions;
+using HostBridge.AspNet;
 using HostBridge.Core;
 using HostBridge.Tests.Common.TestHelpers;
 

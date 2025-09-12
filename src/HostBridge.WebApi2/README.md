@@ -1,42 +1,85 @@
-﻿# HostBridge.WebApi2
+﻿[//]: # (./src/HostBridge.WebApi2/README.md)
 
-ASP.NET Web API 2 dependency resolver that uses Microsoft.Extensions.DependencyInjection and participates in the per-request scope created by HostBridge.AspNet.
+# HostBridge.WebApi2
 
-Install: `HostBridge.WebApi2` (net472, net48)
+💡 *“Web API 2 controllers that don’t secretly use `new`.”*
 
-## Wire-up
+This adapter plugs HostBridge DI into **ASP.NET Web API 2** via its `IDependencyResolver`.  
+Controllers, filters, and message handlers resolve from the per-request scope.
 
-1) Ensure HostBridge.AspNet is initialized and the request-scope IHttpModule is registered (see that package README).
+---
 
-2) In WebApiConfig.Register(HttpConfiguration config):
+## API Surface
+
+- `WebApiDependencyResolver` – resolves from ASP.NET request scope
+- `WebApiOwinAwareResolver` – resolves from OWIN scope (preferred in OWIN hosts)
+
+---
+
+## Wiring
+
+**WebApiConfig.cs**
 
 ```csharp
-using System.Web.Http;
-using HostBridge.AspNet;
-using HostBridge.WebApi2;
-
 public static class WebApiConfig
 {
     public static void Register(HttpConfiguration config)
     {
-        // build/init elsewhere at app start; shown here for brevity
-        var services = new ServiceCollection();
-        services.AddScoped<IMyScoped, MyScoped>();
-        var sp = services.BuildServiceProvider();
-        AspNetBootstrapper.Initialize(new LegacyHost(sp));
+        var host = new LegacyHostBuilder()
+            .ConfigureServices((ctx, services) =>
+            {
+                services.AddScoped<IMyScoped, MyScoped>();
+            })
+            .Build();
 
-        // tell Web API to use DI
+        AspNetBootstrapper.Initialize(host);
+
         config.DependencyResolver = new WebApiDependencyResolver();
 
-        // routes, formatters, etc.
-        config.MapHttpAttributeRoutes();
+        new HostBridgeVerifier()
+            .Add(AspNetChecks.VerifyAspNet)
+            .Log(HB.Get<ILogger<WebApiConfig>>()); // prod
     }
 }
+````
+
+**web.config**
+
+```xml
+<system.webServer>
+  <modules>
+    <add name="HostBridgeRequestScope" type="HostBridge.AspNet.AspNetRequestScopeModule" />
+    <add name="HostBridgeCorrelation"  type="HostBridge.AspNet.CorrelationHttpModule" />
+  </modules>
+</system.webServer>
 ```
 
-## How it works
-- WebApiDependencyResolver delegates to AspNetRequest.RequestServices. When the IHttpModule is installed, that is a per-request IServiceScope.
-- BeginScope returns a lightweight adapter because the HttpModule owns the actual request scope lifecycle.
+---
 
-## Examples
-- See ../../examples/WebApi2
+## How it works
+
+* Resolver uses `AspNetRequest.RequestServices` from the request scope module.
+* **Scoped** services are unique per HTTP request.
+* **Singletons** live for the app domain.
+* **Transients** are per resolve and disposed at the end of the request.
+* In OWIN self-host: use `UseHostBridgeRequestScope()` middleware + `WebApiOwinAwareResolver`.
+
+---
+
+## Diagnostics Tip
+
+Verifier catches:
+
+* Missing bootstrap/init
+* Resolver not set
+* Module not registered
+
+---
+
+## Notes
+
+* Correlation (if enabled) flows via `X-Correlation-Id`.
+* Supports both System.Web and OWIN hosting.
+* See also:
+    * [HostBridge.AspNet](../HostBridge.AspNet/README.md) – per-request scope module
+    * [HostBridge.Mvc5](../HostBridge.Mvc5/README.md) – MVC resolver
