@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using HostBridge.Abstractions;
-
-using JetBrains.Annotations;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core;
 
@@ -18,7 +12,6 @@ namespace HostBridge.Core;
 /// cts.Cancel();
 /// await run;
 /// </example>
-[UsedImplicitly]
 public static class LegacyHostRunExtensions
 {
     /// <summary>
@@ -29,7 +22,6 @@ public static class LegacyHostRunExtensions
     /// <param name="token">A cancellation token that signals when to stop.</param>
     /// <param name="shutdownTimeout">Optional timeout to apply to StopAsync.</param>
     /// <returns>A task that completes when the host has stopped.</returns>
-    [UsedImplicitly]
     public static async Task RunAsync(this ILegacyHost host, CancellationToken token = default, TimeSpan? shutdownTimeout = null)
     {
         if (host is null)
@@ -58,7 +50,6 @@ public static class LegacyHostRunExtensions
     /// await host.RunConsoleAsync(TimeSpan.FromSeconds(10));
     /// // Press Ctrl+C to trigger shutdown
     /// </example>
-    [UsedImplicitly]
     public static async Task RunConsoleAsync(this ILegacyHost host, TimeSpan? shutdownTimeout = null)
     {
         if (host is null) throw new ArgumentNullException(nameof(host));

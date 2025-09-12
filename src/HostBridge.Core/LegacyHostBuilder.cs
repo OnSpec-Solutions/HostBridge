@@ -1,12 +1,4 @@
-﻿using System;
-
-using HostBridge.Abstractions;
-
-using JetBrains.Annotations;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core;
 
@@ -42,7 +34,6 @@ public sealed class LegacyHostBuilder
     /// Sets the environment name for the host (e.g. Development, Staging, Production).
     /// </summary>
     /// <param name="name">Environment name.</param>
-    [UsedImplicitly]
     public LegacyHostBuilder UseEnvironment(string name)
     {
         _envName = name;

@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using HostBridge.Abstractions;
-using HostBridge.Tests.Common.Fakes;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using HostBridge.Tests.Common.Logging;
-
-using TestStack.BDDfy;
-using Xunit;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core.Tests;
 
@@ -47,7 +35,7 @@ public class LegacyHostTests
     {
         _logger = new TestLogger<LegacyHost>();
         var builder = new LegacyHostBuilder()
-            .ConfigureServices((ctx, services) =>
+            .ConfigureServices((_, services) =>
             {
                 services.AddSingleton<ILogger<LegacyHost>>(_logger);
                 for (int i = 0; i < count; i++)

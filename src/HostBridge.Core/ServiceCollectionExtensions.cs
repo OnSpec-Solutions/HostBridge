@@ -1,7 +1,5 @@
 ﻿using HostBridge.Abstractions;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HostBridge.Core;
 
 /// <summary>
@@ -18,6 +16,7 @@ public static class ServiceCollectionExtensions
     /// <example>
     /// <code>services.AddHostedService&lt;HeartbeatService&gt;();</code>
     /// </example>
+    // ReSharper disable once UnusedMethodReturnValue.Global
     public static IServiceCollection AddHostedService<THosted>(this IServiceCollection services)
         where THosted : class, IHostedService =>
         services.AddSingleton<IHostedService, THosted>();

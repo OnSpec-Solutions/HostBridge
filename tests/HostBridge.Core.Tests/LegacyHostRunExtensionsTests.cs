@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using HostBridge.Abstractions;
-using HostBridge.Tests.Common.Fakes;
-using Xunit;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core.Tests;
 
@@ -69,5 +63,4 @@ public class LegacyHostRunExtensionsTests
         fake.StopCalls.Should().Be(1);
         fake.Disposed.Should().BeTrue();
     }
-
 }

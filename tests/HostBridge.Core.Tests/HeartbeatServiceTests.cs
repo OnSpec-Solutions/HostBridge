@@ -1,12 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using FluentAssertions;
-
-using HostBridge.Tests.Common.Logging;
-using TestStack.BDDfy;
-using Xunit;
-
-namespace HostBridge.Core.Tests;
+﻿namespace HostBridge.Core.Tests;
 
 public class HeartbeatServiceTests
 {
@@ -55,5 +47,4 @@ public class HeartbeatServiceTests
         _sut.StopAsync().GetAwaiter().GetResult();
         _sut.Dispose();
     }
-
 }

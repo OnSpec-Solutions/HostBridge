@@ -1,10 +1,4 @@
-﻿using System.Linq;
-using FluentAssertions;
-using HostBridge.Abstractions;
-using HostBridge.Tests.Common.Fakes;
-using Microsoft.Extensions.DependencyInjection;
-using TestStack.BDDfy;
-using Xunit;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core.Tests;
 

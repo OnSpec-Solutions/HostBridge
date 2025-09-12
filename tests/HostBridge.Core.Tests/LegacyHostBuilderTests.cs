@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using HostBridge.Abstractions;
-
-using JetBrains.Annotations;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using TestStack.BDDfy;
-using Xunit;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core.Tests;
 
@@ -35,7 +22,8 @@ public class LegacyHostBuilderTests
     {
         var builder = new LegacyHostBuilder()
             .UseEnvironment("Dev")
-            .ConfigureAppConfiguration(cfg => cfg.AddInMemoryCollection(new Dictionary<string, string?> { ["k1"] = "v1" }))
+            .ConfigureAppConfiguration(cfg =>
+                cfg.AddInMemoryCollection(new Dictionary<string, string?> { ["k1"] = "v1" }))
             .ConfigureLogging(lb => lb.AddProvider(new ListLoggerProvider(_logs)))
             .ConfigureServices((ctx, services) =>
             {
@@ -68,23 +56,40 @@ public class LegacyHostBuilderTests
     [UsedImplicitly]
     private sealed class TestHosted(List<string> calls) : IHostedService
     {
-        public Task StartAsync(CancellationToken ct = default) { calls.Add("start"); return Task.CompletedTask; }
-        public Task StopAsync(CancellationToken ct = default) { calls.Add("stop"); return Task.CompletedTask; }
+        public Task StartAsync(CancellationToken ct = default)
+        {
+            calls.Add("start");
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken ct = default)
+        {
+            calls.Add("stop");
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class ListLoggerProvider(List<string> sink) : ILoggerProvider
     {
         public ILogger CreateLogger(string categoryName) => new ListLogger(sink);
         public void Dispose() { }
+
         private sealed class ListLogger(List<string> sink) : ILogger
         {
             public IDisposable BeginScope<TState>(TState state) => NullDisposable.Instance;
             public bool IsEnabled(LogLevel logLevel) => true;
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+                Func<TState, Exception?, string> formatter)
             {
                 sink.Add(formatter(state, exception));
             }
-            private sealed class NullDisposable : IDisposable { public static readonly NullDisposable Instance = new(); public void Dispose() { } }
+
+            private sealed class NullDisposable : IDisposable
+            {
+                public static readonly NullDisposable Instance = new();
+                public void Dispose() { }
+            }
         }
     }
 }

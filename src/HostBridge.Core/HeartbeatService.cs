@@ -1,12 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-using HostBridge.Abstractions;
-
-using JetBrains.Annotations;
-
-using Microsoft.Extensions.Logging;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Core;
 
@@ -17,7 +9,6 @@ namespace HostBridge.Core;
 /// <example>
 /// <code>services.AddHostedService&lt;HeartbeatService&gt;();</code>
 /// </example>
-[UsedImplicitly]
 public sealed class HeartbeatService(ILogger<HeartbeatService> log) : IHostedService, IDisposable
 {
     private Timer? _timer;
