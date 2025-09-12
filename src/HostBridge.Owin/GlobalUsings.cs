@@ -1,0 +1,10 @@
+﻿// Global using directives
+
+global using System;
+global using System.Collections.Generic;
+global using System.Web;
+global using System.Web.Http.Dependencies;
+
+global using Microsoft.Extensions.DependencyInjection;
+
+global using Owin;
