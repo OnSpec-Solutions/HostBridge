@@ -4,4 +4,13 @@
         <TargetFrameworks>net472;net48</TargetFrameworks>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Reference Include="System.ServiceModel" />
+      <Reference Include="System.ServiceModel.Activation" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HostBridge.Abstractions\HostBridge.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>
