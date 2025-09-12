@@ -1,14 +1,29 @@
-﻿# HostBridge.Options.Config
+﻿[//]: # (./src/HostBridge.Options.Config/README.md)
+
+# HostBridge.Options.Config
 
 💡 *“Because `app.config` and `web.config` aren’t going away tomorrow.”*
 
-This package makes your dusty XML configs play nice with `Microsoft.Extensions.Configuration` and `IOptions<T>`.
+This package makes your dusty XML configs (`app.config` / `web.config`) play nice with
+`Microsoft.Extensions.Configuration` and `IOptions<T>` — without a rewrite.
 
-### Why you want it
+---
 
-You’ve got `appSettings` and `connectionStrings` in `web.config`. You want to bind them to POCO options like you do in .NET Core. Without rewriting all the configs. Done.
+## API Surface
 
-### Wire-up
+```csharp
+IConfigurationBuilder AddHostBridgeAppConfig(this IConfigurationBuilder builder)
+````
+
+* Reads `<appSettings>` and `<connectionStrings>` from classic config.
+* Keys appear in the modern configuration system as:
+
+    * `appSettings:MyKey` → value
+    * `connectionStrings:Default` → connection string
+
+---
+
+## Wiring
 
 **web.config**
 
@@ -23,61 +38,73 @@ You’ve got `appSettings` and `connectionStrings` in `web.config`. You want to 
 </configuration>
 ```
 
-**C#**
+**Global.asax.cs**
 
 ```csharp
-var cfg = new ConfigurationBuilder()
-    .AddHostBridgeAppConfig() // from HostBridge.Options.Config
-    .Build();
-
-services.Configure<MyOptions>(cfg);
-
-var enabled = cfg["My:Feature:Enabled"];         // "true"
-var cs = cfg["connectionStrings:Default"];      // connection string
-```
-
-### Keys exposed
-
-* `appSettings:KeyName` → value
-* `connectionStrings:Default` → connection string
-
-### Notes
-
-* Works in `net472`, `net48`, and `netstandard2.0`.
-* Plays nicely with JSON overrides if you add `.AddJsonFile("appsettings.json")`.
-
----
-
-# HostBridge.Core
-
-💡 *“A static accessor that doesn’t make you hate yourself.”*
-
-Sometimes you need a static handle into DI (console apps, Windows Services). `HB` gives you:
-
-* `HB.Initialize(host)` — set it once
-* `HB.Get<T>()` / `HB.TryGet<T>()` — resolve without ceremony
-* `HB.CreateScope()` / `HB.BeginScope()` — spin up scoped lifetimes
-* `HB.Current` — ambient provider, flows across `async/await`
-
-### Quick start
-
-```csharp
-var services = new ServiceCollection();
-services.AddScoped<IMyScoped, MyScoped>();
-var sp = services.BuildServiceProvider();
-
-var host = new LegacyHost(sp);
-HB.Initialize(host);
-
-using (HB.BeginScope())
+protected void Application_Start()
 {
-    var svc = HB.Get<IMyScoped>(); // resolved from scope
+    var host = new LegacyHostBuilder()
+        .ConfigureAppConfiguration(cfg =>
+        {
+            // pull in appSettings/connectionStrings
+            cfg.AddHostBridgeAppConfig();
+
+            // add JSON or other providers as overrides if desired
+            cfg.AddJsonFile("appsettings.json", optional: true);
+        })
+        .ConfigureServices((ctx, services) =>
+        {
+            // bind options from classic config
+            services.Configure<MyOptions>(ctx.Configuration.GetSection("My"));
+        })
+        .Build();
+
+    AspNetBootstrapper.Initialize(host);
 }
 ```
 
-### Notes
+---
 
-* Call `Initialize` once per process.
-* Accessing `HB.Root` before init throws (better than nulls).
-* Scoped services resolved inside `BeginScope()` are disposed when the scope ends.
-* Use at app edges — still prefer constructor injection in real services.
+## How it works
+
+* Values from `<appSettings>` and `<connectionStrings>` are injected into the standard
+  `IConfiguration` pipeline.
+* Later providers (e.g. JSON, env vars) can override them — standard `IConfiguration`
+  precedence applies.
+* Options binding works the same way as in .NET Core:
+
+  ```csharp
+  public sealed class MyOptions
+  {
+      public FeatureOptions Feature { get; set; } = new();
+  }
+  ```
+
+---
+
+## Diagnostics Tip
+
+To verify critical keys are present, add a custom check:
+
+```csharp
+verifier.Add(() =>
+{
+    var cfg = host.Services.GetRequiredService<IConfiguration>();
+    if (string.IsNullOrEmpty(cfg["connectionStrings:Default"]))
+        yield return new DiagnosticResult(
+            "HB-CONFIG-001",
+            Severity.Error,
+            "Missing Default connection string in app/web.config.");
+});
+```
+
+---
+
+## Notes
+
+* Supported TFMs: `netstandard2.0`, `net472`, `net48`.
+* Plays nicely with JSON, environment variables, and other providers.
+* Useful for bridging **modern DI + Options** into legacy app domains.
+* ⚡ See also:
+    * [HostBridge.Diagnostics](../HostBridge.Diagnostics/README.md) – fail fast on wiring mistakes
+    * [HostBridge.Core](../HostBridge.Core/README.md) – `HB` accessor and ambient scopes
