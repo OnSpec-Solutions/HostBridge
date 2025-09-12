@@ -1,52 +1,78 @@
-﻿# HostBridge.Core
+﻿[//]: # (./src/HostBridge.Core/README.md)
 
-Lightweight helpers for working with Microsoft.Extensions.DependencyInjection in classic .NET apps. It exposes a simple static accessor (HB) for the root IServiceProvider, ambient scoping, and convenient resolution helpers.
+# HostBridge.Core
 
-## Install
-- NuGet: `HostBridge.Core`
-- Targets: net472, net48
+💡 *“A static accessor that doesn’t make you hate yourself.”*
 
-## Quick start
+This package provides `LegacyHostBuilder` and the `HB` static accessor for console apps, services, and other edge cases.
 
-1) Build a host and initialize HB once during application startup:
+---
 
-```csharp
-// e.g., Global.asax.cs Application_Start, OWIN startup, or Program.Main
-var services = new ServiceCollection();
-services.AddOptions();
-services.AddSingleton<IMyService, MyService>();
-var sp = services.BuildServiceProvider();
+## API Surface
 
-var host = new LegacyHost(sp); // your ILegacyHost implementation
-HostBridge.Core.HB.Initialize(host);
-```
+- `LegacyHostBuilder` – configure services, logging, config, and build an `ILegacyHost`
+- `HB.Initialize(host)` – set the root host once
+- `HB.Root` – root provider (composition root)
+- `HB.Current` – ambient provider (flows via AsyncLocal)
+- `HB.Get<T>()` / `HB.TryGet<T>()` – resolve from current provider
+- `HB.CreateScope()` / `HB.BeginScope()` – manual or ambient scope creation
 
-2) Resolve services where needed (after initialization):
+---
 
-```csharp
-var svc = HB.Get<IMyService>();
-var maybe = HB.TryGet<OptionalService>(); // returns null if not registered
-```
+## Wiring
 
-3) Create explicit scopes or ambient scopes:
+**Program.cs**
 
 ```csharp
-using var scope = HB.CreateScope();
-var scoped = scope.ServiceProvider.GetRequiredService<IMyScoped>();
-
-using (HB.BeginScope())
+static async Task Main()
 {
-    // HB.Current now points to a scoped provider
-    var svc2 = HB.Get<IMyService>();
+    var host = new LegacyHostBuilder()
+        .ConfigureAppConfiguration(cfg => cfg.AddHostBridgeAppConfig())
+        .ConfigureServices((ctx, services) =>
+        {
+            services.AddOptions();
+            services.AddScoped<IMyScoped, MyScoped>();
+            services.AddHostedService<Worker>();
+        })
+        .Build();
+
+    HB.Initialize(host);
+
+    using (HB.BeginScope())
+    {
+        var svc = HB.Get<IMyScoped>();
+        Console.WriteLine(svc.ToString());
+    }
+
+    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+    await host.RunAsync(cts.Token, shutdownTimeout: TimeSpan.FromSeconds(5));
 }
-// ambient scope is restored
 ```
+
+---
+
+## How it works
+
+* `LegacyHostBuilder` mirrors the modern .NET Core host builder.
+* `HB` is a safe static accessor for edge cases:
+
+    * Ambient scope flows via AsyncLocal
+    * Root access is guarded (throws if not initialized)
+* Scoped services are disposed when their scope ends.
+
+---
+
+## Diagnostics Tip
+
+Use [HostBridge.Diagnostics](../HostBridge.Diagnostics/README.md) to verify bootstrap/init is correct.
+Especially important in tests and console apps.
+
+---
 
 ## Notes
-- Call HB.Initialize(host) once per process after building your container.
-- Accessing HB.Root/Current before initialization throws InvalidOperationException.
-- Prefer explicit scoping around request/operation boundaries.
 
-## See also
-- Examples: ../examples
-- API docs are shipped in XML with the package.
+* `HB` should be used at app edges only; prefer constructor injection in real services.
+* Correlation scopes (`Correlation.Begin`) nest cleanly inside `HB.BeginScope()`.
+* See also:
+    * [HostBridge.Options.Config](../HostBridge.Options.Config/README.md) – config binding
+    * [HostBridge.Diagnostics](../HostBridge.Diagnostics/README.md) – wiring checks

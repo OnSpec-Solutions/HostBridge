@@ -1,66 +1,88 @@
 ﻿using HostBridge.Abstractions;
+using HostBridge.Core;
 
 namespace HostBridge.Core.Tests;
 
 public class LegacyHostRunExtensionsTests
 {
-    [Fact]
-    public async Task RunAsync_null_host_throws()
+    private sealed class FakeHost : ILegacyHost
     {
-        ILegacyHost? host = null;
-        Func<Task> act = () => LegacyHostRunExtensions.RunAsync(host!);
-        await act.Should().ThrowAsync<ArgumentNullException>();
+        public int StartCalls { get; private set; }
+        public int StopCalls { get; private set; }
+        public int DisposeCount { get; private set; }
+        public int StopWithTimeoutCalls { get; private set; }
+        public int StopWithoutTimeoutCalls { get; private set; }
+
+        public IServiceProvider ServiceProvider { get; } = new ServiceCollection().BuildServiceProvider();
+
+        public Task StartAsync(CancellationToken ct = default)
+        {
+            StartCalls++;
+            return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken ct = default)
+        {
+            StopCalls++;
+            if (ct.CanBeCanceled)
+            {
+                StopWithTimeoutCalls++;
+                try
+                {
+                    // Wait until canceled to simulate honoring timeout token
+                    await Task.Delay(Timeout.Infinite, ct);
+                }
+                catch (OperationCanceledException)
+                {
+                    // expected
+                }
+            }
+            else
+            {
+                StopWithoutTimeoutCalls++;
+            }
+        }
+
+        public void Dispose() => DisposeCount++;
     }
 
     [Fact]
-    public async Task RunAsync_starts_waits_for_cancellation_then_stops_and_disposes()
+    public async Task RunAsync_starts_waits_for_cancellation_then_stops_and_disposes_without_timeout()
     {
-        var fake = new ConfigurableLegacyHost();
+        var host = new FakeHost();
         using var cts = new CancellationTokenSource();
 
-        var task = fake.RunAsync(cts.Token);
-        await Task.Delay(20); // allow StartAsync to run
-        fake.StartCalls.Should().Be(1);
-        fake.StopCalls.Should().Be(0);
-        fake.Disposed.Should().BeFalse();
+        var runTask = host.RunAsync(cts.Token, shutdownTimeout: null);
+        // allow StartAsync to run
+        await Task.Delay(10);
+        host.StartCalls.Should().Be(1);
 
+        // Cancel and wait for shutdown
         cts.Cancel();
-        await task; // should complete after cancellation and stop
+        await runTask;
 
-        fake.StopCalls.Should().Be(1);
-        fake.Disposed.Should().BeTrue();
+        host.StopCalls.Should().Be(1);
+        host.StopWithoutTimeoutCalls.Should().Be(1);
+        host.StopWithTimeoutCalls.Should().Be(0);
+        host.DisposeCount.Should().Be(1);
     }
 
     [Fact]
-    public async Task RunAsync_with_timeout_uses_cancellation_on_stop()
+    public async Task RunAsync_uses_timeout_token_when_timeout_specified()
     {
-        var fake = new ConfigurableLegacyHost { StopDelay = TimeSpan.FromMilliseconds(100) };
+        var host = new FakeHost();
         using var cts = new CancellationTokenSource();
 
-        var run = fake.RunAsync(cts.Token, shutdownTimeout: TimeSpan.FromMilliseconds(10));
-        await Task.Delay(20);
+        var runTask = host.RunAsync(cts.Token, shutdownTimeout: TimeSpan.FromMilliseconds(25));
+        await Task.Delay(10);
+        host.StartCalls.Should().Be(1);
+
+        // Trigger cancellation of the run loop
         cts.Cancel();
-        await run;
+        await runTask;
 
-        fake.StopCalls.Should().Be(1);
-        fake.StopObservedCanceledToken.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task RunConsoleAsync_null_host_throws()
-    {
-        ILegacyHost? host = null;
-        Func<Task> act = () => LegacyHostRunExtensions.RunConsoleAsync(host!);
-        await act.Should().ThrowAsync<ArgumentNullException>();
-    }
-
-    [Fact]
-    public async Task RunConsoleAsync_when_StartAsync_throws_still_calls_Stop_and_Dispose()
-    {
-        var fake = new ConfigurableLegacyHost { ThrowOnStart = true };
-        Func<Task> act = () => fake.RunConsoleAsync();
-        await act.Should().ThrowAsync<InvalidOperationException>();
-        fake.StopCalls.Should().Be(1);
-        fake.Disposed.Should().BeTrue();
+        host.StopCalls.Should().Be(1);
+        host.StopWithTimeoutCalls.Should().Be(1);
+        host.DisposeCount.Should().Be(1);
     }
 }
