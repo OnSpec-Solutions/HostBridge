@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net472;net48</TargetFrameworks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="System.ServiceProcess" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HostBridge.Abstractions\HostBridge.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

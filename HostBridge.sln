@@ -61,6 +61,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostBridge.Examples.Common"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OwinComposite", "examples\OwinComposite\OwinComposite.csproj", "{64378DCC-A01F-4885-A3A1-05A1EB28D456}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostBridge.WindowsService", "src\HostBridge.WindowsService\HostBridge.WindowsService.csproj", "{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostBridge.WindowsService.Tests", "tests\HostBridge.WindowsService.Tests\HostBridge.WindowsService.Tests.csproj", "{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -171,6 +175,14 @@ Global
 		{64378DCC-A01F-4885-A3A1-05A1EB28D456}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64378DCC-A01F-4885-A3A1-05A1EB28D456}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64378DCC-A01F-4885-A3A1-05A1EB28D456}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,6 +214,8 @@ Global
 		{ED411DDB-E4C9-49D3-A820-09C1CDCAB6E7} = {5D8CFF69-ED55-416D-9AFC-110F7BDA2D7D}
 		{213CB07A-8B3F-41E5-9F51-DB5A99B82CDA} = {5D8CFF69-ED55-416D-9AFC-110F7BDA2D7D}
 		{64378DCC-A01F-4885-A3A1-05A1EB28D456} = {5D8CFF69-ED55-416D-9AFC-110F7BDA2D7D}
+		{6CD3CCA0-8774-441B-AC96-78A9CA2FDF9D} = {407F1C04-6DFF-4D33-BB5A-FE4B4D0688F9}
+		{FD6385F8-92D3-43E2-A4AE-D7CBF3ED7A3B} = {7B511924-A52C-4B26-8688-1C431318EBB3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7FC8876F-CD73-46C3-B6FE-6E739BAFB4AF}
