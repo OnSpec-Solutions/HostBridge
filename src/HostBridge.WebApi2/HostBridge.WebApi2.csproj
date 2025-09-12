@@ -4,4 +4,12 @@
         <TargetFrameworks>net472;net48</TargetFrameworks>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\HostBridge.AspNet\HostBridge.AspNet.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
+    </ItemGroup>
+
 </Project>
