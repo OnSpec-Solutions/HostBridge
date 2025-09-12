@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net472;net48</TargetFrameworks>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\HostBridge.Diagnostics\HostBridge.Diagnostics.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.AspNet\HostBridge.AspNet.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.Mvc5\HostBridge.Mvc5.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.WebApi2\HostBridge.WebApi2.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.Core\HostBridge.Core.csproj" />
+        <ProjectReference Include="..\HostBridge.Tests.Common\HostBridge.Tests.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Mvc" />
+    </ItemGroup>
+
+</Project>

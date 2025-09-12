@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net472;net48</TargetFrameworks>
+    </PropertyGroup>
+
+    <!-- NetStandard: only needs Core for generic checks -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <ProjectReference Include="..\HostBridge.Core\HostBridge.Core.csproj" />
+    </ItemGroup>
+
+    <!-- Full framework: include ASP.NET/MVC/WebApi/WCF adapters so we can verify their wiring -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'net48'">
+        <ProjectReference Include="..\HostBridge.Core\HostBridge.Core.csproj" />
+        <ProjectReference Include="..\HostBridge.AspNet\HostBridge.AspNet.csproj" />
+        <ProjectReference Include="..\HostBridge.Mvc5\HostBridge.Mvc5.csproj" />
+        <ProjectReference Include="..\HostBridge.WebApi2\HostBridge.WebApi2.csproj" />
+        <ProjectReference Include="..\HostBridge.Wcf\HostBridge.Wcf.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup Condition="'$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'net48'">
+        <PackageReference Include="Microsoft.AspNet.WebApi.WebHost" Version="5.3.0" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Reference Include="System.Web" />
+    </ItemGroup>
+
+</Project>
