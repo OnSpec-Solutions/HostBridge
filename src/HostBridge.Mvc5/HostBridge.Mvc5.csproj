@@ -4,4 +4,12 @@
         <TargetFrameworks>net472;net48</TargetFrameworks>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HostBridge.AspNet\HostBridge.AspNet.csproj" />
+    </ItemGroup>
+
 </Project>
