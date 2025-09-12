@@ -293,4 +293,63 @@ public class HostBridgeServiceBaseTests
             .Then(_ => ThenFaultingHostStopCallsZeroAndStartCallsOne())
             .BDDfy();
     }
+        private void WhenShuttingDown()
+    {
+        try
+        {
+            var mi = typeof(HostBridgeServiceBase).GetMethod("OnShutdown", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            mi.ShouldNotBeNull();
+            mi!.Invoke(_svc, null);
+        }
+        catch (Exception e)
+        {
+            _ex = e;
+        }
+    }
+
+    [Fact]
+    public void OnShutdown_calls_StopAsync_and_Dispose()
+    {
+        this.Given(_ => GivenServiceWithDefaultHost())
+            .When(_ => WhenStarting())
+            .When(_ => WhenShuttingDown())
+            .Then(_ => ThenHostStopCalledOnceAndDisposed())
+            .BDDfy();
+    }
+
+    [Fact]
+    public void OnShutdown_handles_StopAsync_exceptions_without_throwing()
+    {
+        this.Given(_ => GivenServiceWithThrowingOnStop())
+            .When(_ => WhenStarting())
+            .When(_ => WhenShuttingDown())
+            .Then(_ => ThenNoExceptionThrown())
+            .Then(_ => ThenThrowingOnStopNotDisposed())
+            .BDDfy();
+    }
+
+    [Fact]
+    public void Double_Stop_is_idempotent_does_not_stop_twice()
+    {
+        this.Given(_ => GivenServiceWithDefaultHost())
+            .When(_ => WhenStarting())
+            .When(_ => WhenStopping())
+            .When(_ => WhenStopping())
+            .Then(_ => ThenHostStopCalledOnceAndDisposed())
+            .BDDfy();
+    }
+
+    [Fact]
+    public void ShutdownTimeout_default_is_30_seconds()
+    {
+        var svc = new TimeoutProbeService(new ConfigurableLegacyHost());
+        svc.ServiceName = "HBTestSvc";
+        svc.GetShutdownTimeout().ShouldBe(TimeSpan.FromSeconds(30));
+    }
+
+    private sealed class TimeoutProbeService(ILegacyHost host) : HostBridgeServiceBase
+    {
+        protected override ILegacyHost BuildHost() => host;
+        public TimeSpan GetShutdownTimeout() => ShutdownTimeout;
+    }
 }

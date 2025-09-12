@@ -1,10 +1,22 @@
-﻿# HostBridge.WindowsService
+﻿[//]: # (./src/HostBridge.WindowsService/README.md)
+
+# HostBridge.WindowsService
 
 💡 *“Windows Services that behave like modern .NET background services.”*
 
-This package gives you a base class that wraps DI + host lifetimes. You get non-blocking startup and graceful shutdowns.
+This package provides a base class for **Windows Services** with DI, graceful startup/shutdown, and proper lifetime handling.
 
-### Wire-up
+---
+
+## API Surface
+
+- `HostBridgeServiceBase` – base class wrapping `ILegacyHost` lifetimes
+
+---
+
+## Wiring
+
+**MyWindowsService.cs**
 
 ```csharp
 public sealed class MyWindowsService : HostBridgeServiceBase
@@ -14,33 +26,52 @@ public sealed class MyWindowsService : HostBridgeServiceBase
         var services = new ServiceCollection();
         services.AddOptions();
         services.AddSingleton<IMyWorker, MyWorker>();
-        var sp = services.BuildServiceProvider();
-        return new LegacyHost(sp);
+        return new LegacyHost(services.BuildServiceProvider());
     }
 }
-```
+````
 
 **Program.cs**
 
 ```csharp
-static class Program
+static void Main(string[] args)
 {
-    static void Main(string[] args)
-    {
-        using var service = new MyWindowsService();
+    using var service = new MyWindowsService();
+
 #if DEBUG
-        service.Start(args); // run as console for dev
-        Console.ReadLine();
-        service.Stop();
+    service.Start(args);
+    Console.ReadLine();
+    service.Stop();
 #else
-        ServiceBase.Run(service);
+    ServiceBase.Run(service);
 #endif
-    }
+
+    new HostBridgeVerifier()
+        .Add(() => WindowsServiceChecks.VerifyWindowsService(!Environment.UserInteractive))
+        .Log(HB.Get<ILogger<Program>>());
 }
 ```
 
-### Behavior
+---
 
-* `OnStart` builds the host and calls `StartAsync`.
-* `OnStop` / `OnShutdown` stop the host with a 30s timeout and dispose it.
-* Override `ShutdownTimeout` if your services need more time.
+## How it works
+
+* `OnStart` builds host and calls `StartAsync`.
+* `OnStop`/`OnShutdown` call `StopAsync` with timeout then dispose.
+* Supports running as console in DEBUG for easier dev.
+
+---
+
+## Diagnostics Tip
+
+Verifier warns if running in console vs. SCM. Logs instead of failing fast.
+
+---
+
+## Notes
+
+* Scoped lifetimes flow correctly through hosted services.
+* Shutdown timeout defaults to 30s; override `ShutdownTimeout` if needed.
+* See also:
+    * [HostBridge.Core](../HostBridge.Core/README.md) – ambient accessor
+    * [HostBridge.Diagnostics](../HostBridge.Diagnostics/README.md) – wiring checks
