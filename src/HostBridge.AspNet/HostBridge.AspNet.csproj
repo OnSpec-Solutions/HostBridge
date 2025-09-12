@@ -4,4 +4,12 @@
         <TargetFrameworks>net472;net48</TargetFrameworks>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\HostBridge.Abstractions\HostBridge.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="System.Web" />
+    </ItemGroup>
+
 </Project>

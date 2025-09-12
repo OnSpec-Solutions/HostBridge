@@ -20,7 +20,14 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\HostBridge.AspNet\HostBridge.AspNet.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.Core\HostBridge.Core.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.Mvc5\HostBridge.Mvc5.csproj" />
+        <ProjectReference Include="..\..\src\HostBridge.WebApi2\HostBridge.WebApi2.csproj" />
         <ProjectReference Include="..\HostBridge.Tests.Common\HostBridge.Tests.Common.csproj" />
     </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
 
 </Project>
