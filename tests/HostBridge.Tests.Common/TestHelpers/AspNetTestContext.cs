@@ -1,4 +1,6 @@
-﻿namespace HostBridge.Tests.Common.TestHelpers;
+﻿using HostBridge.Abstractions;
+
+namespace HostBridge.Tests.Common.TestHelpers;
 
 /// <summary>
 /// Utilities for simulating classic ASP.NET requests in tests.
@@ -18,7 +20,7 @@ public static class AspNetTestContext
         HttpContext.Current = ctx;
         if (scope != null)
         {
-            ctx.Items[AspNet.Constants.ScopeKey] = scope;
+            ctx.Items[Constants.ScopeKey] = scope;
         }
 
         return ctx;
