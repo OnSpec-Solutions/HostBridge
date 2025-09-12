@@ -1,61 +1,81 @@
-﻿# HostBridge.Mvc5
+﻿[//]: # (./src/HostBridge.Mvc5/README.md)
+
+# HostBridge.Mvc5
 
 💡 *“Controllers resolved the way you always wished they were.”*
 
-This adapter plugs DI into MVC5’s `DependencyResolver`. That means controllers, filters, and binders all come from your container.
+This adapter plugs HostBridge DI into **ASP.NET MVC 5** via `DependencyResolver`.  
+Controllers, filters, and binders all resolve from your container, with correct lifetimes.
 
-### Wire-up
+---
+
+## API Surface
+
+- `MvcDependencyResolver` – plugs into MVC5’s `DependencyResolver`
+
+---
+
+## Wiring
+
+**Global.asax.cs**
 
 ```csharp
 protected void Application_Start()
 {
-    var services = new ServiceCollection();
-    services.AddScoped<IMyScoped, MyScoped>();
-    var sp = services.BuildServiceProvider();
+    var host = new LegacyHostBuilder()
+        .ConfigureServices((ctx, services) =>
+        {
+            services.AddScoped<IMyScoped, MyScoped>();
+            services.AddSingleton<IMySingleton, MySingleton>();
+        })
+        .Build();
 
-    var host = new LegacyHost(sp);
     AspNetBootstrapper.Initialize(host);
 
     DependencyResolver.SetResolver(new MvcDependencyResolver());
+
+    new HostBridgeVerifier()
+        .Add(AspNetChecks.VerifyAspNet)
+        .ThrowIfCritical(); // dev/test
 }
+````
+
+**web.config**
+
+```xml
+<system.webServer>
+  <modules>
+    <add name="HostBridgeRequestScope" type="HostBridge.AspNet.AspNetRequestScopeModule" />
+    <add name="HostBridgeCorrelation"  type="HostBridge.AspNet.CorrelationHttpModule" />
+  </modules>
+</system.webServer>
 ```
-
-### How it works
-
-`MvcDependencyResolver` delegates to `AspNetRequest.RequestServices`, which points to the per-request scope created by the ASP.NET module.
-
-Result: `AddScoped` really is per request; `AddSingleton` is global.
 
 ---
 
-# HostBridge.WebApi2
+## How it works
 
-💡 *“Web API 2 controllers that don’t secretly use `new`.”*
+* `MvcDependencyResolver` resolves via `AspNetRequest.RequestServices` (the per-request scope).
+* **Scoped** services are unique per HTTP request.
+* **Singleton** services live for the app domain.
+* **Transient** services are created per resolve and disposed with the request scope.
 
-This adapter wires DI into Web API 2 via its `IDependencyResolver`.
+---
 
-### Wire-up
+## Diagnostics Tip
 
-```csharp
-public static class WebApiConfig
-{
-    public static void Register(HttpConfiguration config)
-    {
-        var services = new ServiceCollection();
-        services.AddScoped<IMyScoped, MyScoped>();
-        var sp = services.BuildServiceProvider();
-        AspNetBootstrapper.Initialize(new LegacyHost(sp));
+Wire `HostBridgeVerifier` at startup to catch:
 
-        config.DependencyResolver = new WebApiDependencyResolver();
+* Missing `AspNetBootstrapper.Initialize(host)`
+* Missing `HostBridgeRequestScopeModule` in `web.config`
+* Wrong resolver in MVC
 
-        config.MapHttpAttributeRoutes();
-    }
-}
-```
+---
 
-### How it works
+## Notes
 
-* `WebApiDependencyResolver` resolves via `AspNetRequest.RequestServices`.
-* The ASP.NET module owns the real request scope; Web API just plugs into it.
-* Scoped services are unique per HTTP request.
-* Singletons are app-wide.
+* Correlation (if enabled) enriches all `ILogger` scopes with `CorrelationId`.
+* Scoped lifetimes are isolated per request; no bleed across concurrent requests.
+* See also:
+    * [HostBridge.AspNet](../HostBridge.AspNet/README.md) – base module & `[FromServices]` support
+    * [HostBridge.WebApi2](../HostBridge.WebApi2/README.md) – Web API 2 resolver
