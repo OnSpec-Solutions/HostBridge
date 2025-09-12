@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\HostBridge.Abstractions\HostBridge.Abstractions.csproj" />
+      <ProjectReference Include="..\HostBridge.Core\HostBridge.Core.csproj" />
     </ItemGroup>
 
 </Project>

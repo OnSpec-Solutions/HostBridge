@@ -1,28 +1,49 @@
-﻿# HostBridge.Wcf
+﻿[//]: # (./src/HostBridge.Wcf/README.md)
 
-💡 *“Per-call DI in WCF, without crying.”*
+# HostBridge.Wcf
 
-This package swaps WCF’s instance provider with one that understands DI scopes.
+💡 *“Per-call DI in WCF, without tears.”*
 
-### Wire-up
+This package integrates HostBridge DI into **Windows Communication Foundation (WCF)**.  
+Each operation call gets its own `IServiceScope`.
+
+---
+
+## API Surface
+
+- `HostBridgeWcf.Initialize(host)` – set root services at app start
+- `DiServiceHostFactory` – plug into `.svc` or config
+- `DiServiceHost` – per-contract DI wiring
+- `DiInstanceProvider` – resolves services per call
+- `CorrelationBehavior` + `CorrelationDispatchInspector` – optional correlation wiring (opt-in by config, opt-out by `[DisableCorrelation]`)
+
+---
+
+## Wiring
 
 **Global.asax.cs**
 
 ```csharp
 protected void Application_Start()
 {
-    var services = new ServiceCollection();
-    services.AddTransient<MyService>();              // service class transient
-    services.AddScoped<IMyScopedDep, MyScopedDep>(); // per-operation
-    services.AddSingleton<ISingletonDep, SingletonDep>();
+    var host = new LegacyHostBuilder()
+        .ConfigureServices((ctx, services) =>
+        {
+            services.AddTransient<MyService>();
+            services.AddScoped<IMyScopedDep, MyScopedDep>();
+            services.AddSingleton<ISingletonDep, SingletonDep>();
+        })
+        .Build();
 
-    var sp = services.BuildServiceProvider();
-    var host = new LegacyHost(sp);
-    HostBridge.Wcf.HostBridgeWcf.Initialize(host);
+    HostBridgeWcf.Initialize(host);
+
+    new HostBridgeVerifier()
+        .Add(WcfChecks.VerifyWcf)
+        .ThrowIfCritical();
 }
-```
+````
 
-**.svc file**
+**Service1.svc**
 
 ```aspx
 <%@ ServiceHost Language="C#" Debug="true"
@@ -30,32 +51,39 @@ protected void Application_Start()
     Factory="HostBridge.Wcf.DiServiceHostFactory" %>
 ```
 
-**Or web.config**
+**Optional web.config (correlation)**
 
 ```xml
-<service name="MyNs.MyService"
-         factory="HostBridge.Wcf.DiServiceHostFactory">
-  <endpoint address=""
-            binding="basicHttpBinding"
-            contract="MyNs.IMyService" />
-</service>
+<appSettings>
+  <add key="HostBridge:Correlation:Enabled" value="true" />
+  <add key="HostBridge:Correlation:HeaderName" value="X-Correlation-Id" />
+</appSettings>
 ```
 
-**Service class**
+---
 
-```csharp
-[ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall,
-                 ConcurrencyMode = ConcurrencyMode.Multiple)]
-public class MyService : IMyService
-{
-    private readonly IMyScopedDep _dep;
-    public MyService(IMyScopedDep dep) => _dep = dep;
-}
-```
+## How it works
 
-### Notes
+* `DiInstanceProvider` creates a new scope per call.
+* Scoped dependencies are unique per call and disposed at release.
+* `[DisableCorrelation]` attribute disables correlation for specific services/contracts.
+* Supports both SOAP headers and HTTP headers for correlation ID.
 
-* A new DI `IServiceScope` is created per operation call.
-* Scoped deps are unique per call and disposed at the end.
-* Singletons are shared app-wide.
-* If `HostBridgeWcf.Initialize(host)` wasn’t called, resolution throws instead of half-working.
+---
+
+## Diagnostics Tip
+
+Verifier checks:
+
+* `HostBridgeWcf.Initialize(host)` was called
+* Service factory is HostBridge’s (`DiServiceHostFactory`)
+
+---
+
+## Notes
+
+* Correlation is opt-in via config.
+* Scoped lifetimes are guaranteed per operation; no bleed across calls.
+* See also:
+    * [HostBridge.Diagnostics](../HostBridge.Diagnostics/README.md) – wiring checks
+    * [HostBridge.Core](../HostBridge.Core/README.md) – ambient accessor
