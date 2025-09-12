@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AnalyseParams>
+  <!-- Default filters: include all modules, exclude tests/examples and test helpers -->
+  <Filters>
+    <IncludeFilters>
+      <FilterEntry>
+        <ModuleMask>*</ModuleMask>
+      </FilterEntry>
+    </IncludeFilters>
+    <ExcludeFilters>
+      <FilterEntry>
+        <ModuleMask>*.Tests</ModuleMask>
+      </FilterEntry>
+      <FilterEntry>
+        <ModuleMask>*.Examples</ModuleMask>
+      </FilterEntry>
+      <FilterEntry>
+        <ClassMask>*.Generated*</ClassMask>
+      </FilterEntry>
+    </ExcludeFilters>
+  </Filters>
+</AnalyseParams>

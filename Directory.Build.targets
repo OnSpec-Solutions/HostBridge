@@ -1,3 +1,12 @@
 ﻿<Project>
-    <Import Project="eng/Directory.Build.targets" />
+  <Import Project="eng/Directory.Build.targets" />
+
+  <!-- Optional dotCover integration: invoke via `dotnet build -t:DotCover` or set DOTCOVER=1 -->
+  <Target Name="DotCover" DependsOnTargets="Build">
+    <PropertyGroup>
+      <_DotCoverScript>$(MSBuildThisFileDirectory)tools\dotCover\run-dotcover.ps1</_DotCoverScript>
+    </PropertyGroup>
+    <Message Text="Running dotCover via $(_DotCoverScript)" Importance="high" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(_DotCoverScript)&quot; -Solution &quot;$(MSBuildThisFileDirectory)HostBridge.sln&quot; -Output &quot;$(MSBuildThisFileDirectory)coverage.dotCover.dcvr&quot; -Report &quot;$(MSBuildThisFileDirectory)coverage.dotcover.xml&quot;" Condition="Exists('$(_DotCoverScript)')" />
+  </Target>
 </Project>
