@@ -1,4 +1,6 @@
-﻿namespace HostBridge.AspNet;
+﻿using HostBridge.Abstractions;
+
+namespace HostBridge.AspNet;
 
 /// <summary>
 /// Accessor for the current request's <see cref="IServiceProvider"/> in classic ASP.NET.

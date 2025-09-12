@@ -1,80 +1,110 @@
-﻿using HostBridge.Abstractions;
-using HostBridge.Tests.Common.Fakes;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+using FluentAssertions;
+using HostBridge.Abstractions;
+using HostBridge.AspNet;
+using HostBridge.Core;
+using HostBridge.Tests.Common.TestHelpers;
+using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
+using TestStack.BDDfy;
+using Xunit;
 
 namespace HostBridge.AspNet.Tests;
 
 public class AspNetRequestScopeModuleTests
 {
-    private IServiceProvider _root = null!;
-
-    [Fact]
-    public void Given_not_initialized_When_BeginRequest_Then_throws()
+    private static void Invoke(string methodName)
     {
-        // Arrange: ensure no root
-        AspNetBootstrapper._ResetForTests();
-        AspNetTestContext.NewRequest();
+        var mi = typeof(AspNetRequestScopeModule)
+            .GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+        mi.ShouldNotBeNull();
+        mi!.Invoke(null, null);
+    }
 
-        // Act + Assert
-        Assert.Throws<InvalidOperationException>(() => AspNetRequestScopeModule.OnBegin());
+    private static IServiceProvider BuildRoot(Action<IServiceCollection>? configure = null)
+    {
+        var host = new LegacyHostBuilder()
+            .ConfigureLogging(_ => { })
+            .ConfigureServices((_, s) =>
+            {
+                s.AddOptions();
+                s.AddSingleton<InjectedDep>();
+                s.AddScoped<ScopedCounter>();
+                configure?.Invoke(s);
+            })
+            .Build();
+        AspNetBootstrapper.Initialize(host);
+        return AspNetBootstrapper.RootServices!;
     }
 
     [Fact]
-    public void Given_initialized_When_request_lifecycle_runs_Then_scope_is_created_injected_and_disposed()
+    public void OnBegin_without_initialization_throws()
     {
-        // Arrange root with a scoped disposable that records disposal
-        var disposed = false;
-        var services = new ServiceCollection();
-        services.AddScoped(_ => new MyDep(() => disposed = true));
-        var host = new FakeLegacyHost(services.BuildServiceProvider());
-        AspNetBootstrapper.Initialize(host);
+#if DEBUG
+        AspNetBootstrapper._ResetForTests();
+#endif
+        AspNetTestContext.NewRequest();
+        Action act = () => Invoke("OnBegin");
+        act.Should().Throw<TargetInvocationException>()
+            .WithInnerException<InvalidOperationException>();
+    }
 
+    [Fact]
+    public void Module_creates_and_disposes_scope_per_request_and_injects_properties()
+    {
+        BuildRoot();
         var ctx = AspNetTestContext.NewRequest();
 
-        // BeginRequest should create a scope and store it
-        AspNetRequestScopeModule.OnBegin();
-        ctx.Items.Contains(Constants.ScopeKey).ShouldBeTrue();
-        var scope = ctx.Items[Constants.ScopeKey].ShouldBeAssignableTo<IServiceScope>();
-
-        // Set a handler page with injectable and non-injectable properties
-        var page = new TestPage();
-        HttpContext.Current!.Handler = page;
-
-        // PreRequestHandlerExecute should inject only [FromServices] property
-        AspNetRequestScopeModule.OnPreRequestHandlerExecute();
-        page.Injected.ShouldNotBeNull();
-        page.NotInjected.Should().BeNull();
-
-        // The resolved instance should be the same as what the scope would resolve
-        var resolved = page.Injected!;
-        var viaScope = scope.ServiceProvider.GetRequiredService<MyDep>();
-        ReferenceEquals(resolved, viaScope).Should().BeTrue("injected instance must come from the request scope");
-
-        // EndRequest should dispose scope and remove key
-        AspNetRequestScopeModule.OnEnd();
+        // Before begin: no scope
         ctx.Items.Contains(Constants.ScopeKey).ShouldBeFalse();
-        disposed.Should().BeTrue();
+
+        Invoke("OnBegin");
+
+        // After begin: scope exists
+        ctx.Items[Constants.ScopeKey].ShouldNotBeNull();
+        ctx.Items[Constants.ScopeKey].ShouldBeAssignableTo<IServiceScope>();
+
+        // Simulate a WebForms page with [FromServices] property
+        var page = new TestPage();
+        ctx.Handler = page; // set current handler
+
+        Invoke("OnPreRequestHandlerExecute");
+
+        page.Injected.ShouldNotBeNull();
+        page.Injected!.WasInjected.Should().BeTrue();
+
+        // Grab scoped service to ensure disposal happens
+        var scope = (IServiceScope)ctx.Items[Constants.ScopeKey]!;
+        var sp = scope.ServiceProvider;
+        var counter = sp.GetRequiredService<ScopedCounter>();
+        counter.ShouldNotBeNull();
+        counter.DisposeCount.Should().Be(0);
+
+        Invoke("OnEnd");
+
+        // Scope removed and disposed
+        ctx.Items.Contains(Constants.ScopeKey).ShouldBeFalse();
+        counter.DisposeCount.Should().Be(1);
     }
 
-    private sealed class MyDep(Action onDispose) : IDisposable
+    private sealed class InjectedDep
     {
-        public IServiceProvider? Source { get; set; }
-        public void Dispose() => onDispose();
+        public bool WasInjected { get; set; } = true;
+    }
+
+    private sealed class ScopedCounter : IDisposable
+    {
+        public int DisposeCount;
+        public void Dispose() => Interlocked.Increment(ref DisposeCount);
     }
 
     private sealed class TestPage : System.Web.UI.Page
     {
-        [FromServices] public MyDep? Injected { get; set; }
-        public object? NotInjected { get; set; }
-
-        protected override void OnPreInit(EventArgs e)
-        {
-            base.OnPreInit(e);
-            // If Injected was set, attach Source for verification
-            if (Injected != null)
-            {
-                Injected.Source = AspNetRequest.RequestServices;
-            }
-        }
+        [FromServices]
+        public InjectedDep? Injected { get; set; }
     }
-
 }

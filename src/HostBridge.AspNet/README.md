@@ -1,31 +1,43 @@
-﻿# HostBridge.AspNet
+﻿[//]: # (./src/HostBridge.AspNet/README.md)
+
+# HostBridge.AspNet
 
 💡 *“Scoped services that actually scope in classic ASP.NET.”*
 
-This package gives you:
+This package establishes per-request DI scopes in **ASP.NET (System.Web)** apps.
 
-* `AspNetBootstrapper.Initialize(host)` — register your root DI container
-* `AspNetRequestScopeModule` — an `IHttpModule` that creates a per-request `IServiceScope` and disposes it at the end
-* `[FromServices]` — decorate a property on a WebForms `Page` and it gets injected automatically
+---
 
-### Why you want it
+## API Surface
 
-Without this, everything is a singleton or a hand-rolled static. With this, `AddScoped` behaves *exactly* like in .NET Core. No cross-request bleed, no more hacks.
+- `AspNetBootstrapper.Initialize(host)` – registers the root `ILegacyHost`
+- `AspNetRequestScopeModule` – `IHttpModule` that creates/disposes a per-request scope
+- `[FromServices]` – attribute for property injection in WebForms pages
+- `AspNetRequest.RequestServices` – static accessor for the current request scope
 
-### Wire-up
+---
+
+## Wiring
 
 **Global.asax.cs**
 
 ```csharp
 protected void Application_Start()
 {
-    var services = new ServiceCollection();
-    services.AddScoped<IMyScoped, MyScoped>();
-    services.AddSingleton<IMySingleton, MySingleton>();
-    var sp = services.BuildServiceProvider();
+    var host = new LegacyHostBuilder()
+        .ConfigureServices((ctx, services) =>
+        {
+            services.AddScoped<IMyScoped, MyScoped>();
+        })
+        .Build();
 
-    var host = new LegacyHost(sp);
     AspNetBootstrapper.Initialize(host);
+
+    DependencyResolver.SetResolver(new MvcDependencyResolver()); // if MVC present
+
+    new HostBridgeVerifier()
+        .Add(AspNetChecks.VerifyAspNet)
+        .ThrowIfCritical();
 }
 ```
 
@@ -34,28 +46,50 @@ protected void Application_Start()
 ```xml
 <system.webServer>
   <modules>
-    <add name="HostBridgeRequestScope"
-         type="HostBridge.AspNet.AspNetRequestScopeModule" />
+    <add name="HostBridgeRequestScope" type="HostBridge.AspNet.AspNetRequestScopeModule" />
+    <add name="HostBridgeCorrelation"  type="HostBridge.AspNet.CorrelationHttpModule" />
   </modules>
 </system.webServer>
 ```
 
-**Optional WebForms injection**
+**WebForms injection**
 
 ```csharp
 public partial class Default : Page
 {
-    [FromServices] public IMyScoped? MyScoped { get; set; }
-
+    [FromServices] public IMyScoped? Scoped { get; set; }
     protected void Page_Load(object sender, EventArgs e)
     {
-        Response.Write(MyScoped?.ToString());
+        Response.Write(Scoped?.ToString());
     }
 }
 ```
 
-### Notes
+---
 
-* Scoped services are unique per request.
-* Singletons are shared across all requests.
-* Forget to call `Initialize(host)`? You’ll get an `InvalidOperationException` early instead of silent weirdness.
+## How it works
+
+* `AspNetRequestScopeModule` creates an `IServiceScope` at `BeginRequest`, disposes at `EndRequest`.
+* MVC5 and Web API 2 resolvers delegate to this scope.
+* WebForms property injection works via `[FromServices]`.
+* Scoped services are unique per HTTP request; singletons live for the app domain.
+
+---
+
+## Diagnostics Tip
+
+Verifier catches:
+
+* Missing bootstrap/init
+* Missing module in `web.config`
+* Resolver not set in MVC/Web API
+
+---
+
+## Notes
+
+* Correlation is opt-in via config + `CorrelationHttpModule`.
+* Scoped lifetimes are isolated; no bleed across concurrent requests.
+* See also:
+    * [HostBridge.Mvc5](../HostBridge.Mvc5/README.md)
+    * [HostBridge.WebApi2](../HostBridge.WebApi2/README.md)

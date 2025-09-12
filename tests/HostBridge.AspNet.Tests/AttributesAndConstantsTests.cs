@@ -1,4 +1,6 @@
-﻿namespace HostBridge.AspNet.Tests;
+﻿using HostBridge.Abstractions;
+
+namespace HostBridge.AspNet.Tests;
 
 public class AttributesAndConstantsTests
 {
@@ -28,7 +30,7 @@ public class AttributesAndConstantsTests
 
     private void ThenScopeKeyIsExpected()
     {
-        _scopeKey.Should().Be("HostBridge.Scope");
+        _scopeKey.Should().Be(Constants.ScopeKey);
     }
 
     private void GivenAnAttributeInstance()

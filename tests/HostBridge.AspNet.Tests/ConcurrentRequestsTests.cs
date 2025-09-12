@@ -1,4 +1,5 @@
-﻿using HostBridge.Core;
+﻿using HostBridge.Abstractions;
+using HostBridge.Core;
 using HostBridge.Mvc5;
 using HostBridge.WebApi2;
 

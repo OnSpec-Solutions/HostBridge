@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using HostBridge.Abstractions;
+
+using JetBrains.Annotations;
 
 namespace HostBridge.AspNet;
 
