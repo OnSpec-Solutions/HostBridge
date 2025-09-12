@@ -1,7 +1,4 @@
 ﻿using HostBridge.Abstractions;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HostBridge.Tests.Common.Fakes;
 
@@ -19,6 +16,7 @@ public class TrackingHostedService(List<string> calls, string name) : IHostedSer
         {
             _calls.Add(_name + ":start");
         }
+
         return Task.CompletedTask;
     }
 
@@ -28,6 +26,7 @@ public class TrackingHostedService(List<string> calls, string name) : IHostedSer
         {
             _calls.Add(_name + ":stop");
         }
+
         return Task.CompletedTask;
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using HostBridge.Abstractions;
+﻿using HostBridge.Abstractions;
 
 namespace HostBridge.Tests.Common.Fakes;
 
@@ -16,8 +13,13 @@ public sealed class ConfigurableLegacyHost(CancellationToken? stopToken = null) 
     public TimeSpan StopDelay { get; set; } = TimeSpan.Zero;
     public bool StopObservedCanceledToken => _stopToken is { IsCancellationRequested: true };
 
-    private sealed class DummySp : IServiceProvider { public object? GetService(Type serviceType) => null; }
-    public IServiceProvider ServiceProvider { get; } = new DummySp(); 
+    private sealed class DummySp : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+    }
+
+    public IServiceProvider ServiceProvider { get; } = new DummySp();
+
     public Task StartAsync(CancellationToken ct = default)
     {
         StartCalls++;
@@ -30,9 +32,23 @@ public sealed class ConfigurableLegacyHost(CancellationToken? stopToken = null) 
         StopCalls++;
         if (StopDelay > TimeSpan.Zero)
         {
-            try { await Task.Delay(StopDelay, ct); } catch { /* ignore */ }
+            try { await Task.Delay(StopDelay, ct); }
+            catch
+            {
+                /* ignore */
+            }
         }
     }
 
     public void Dispose() => Disposed = true;
+}
+public sealed class FakeLegacyHost(IServiceProvider sp) : ILegacyHost
+{
+    public IServiceProvider ServiceProvider => sp;
+    public Task StartAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken ct = default) => Task.CompletedTask;
+    public void Dispose()
+    {
+        if (sp is IDisposable d) d.Dispose();
+    }
 }

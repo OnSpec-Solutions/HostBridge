@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-
-namespace HostBridge.Tests.Common.Logging;
+﻿namespace HostBridge.Tests.Common.Logging;
 
 /// <summary>
 /// Simple test logger that captures Information-level messages.
