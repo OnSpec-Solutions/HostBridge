@@ -14,7 +14,8 @@
     <AssemblyName>WcfService</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <WcfConfigValidationEnabled>True</WcfConfigValidationEnabled>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
     <IISExpressSSLPort />
@@ -62,20 +63,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="MyService.svc" />
     <Content Include="README.md" />
-    <Content Include="Service1.svc" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Global.asax.cs" />
-    <Compile Include="Service1.svc.cs">
-      <DependentUpon>Service1.svc</DependentUpon>
-    </Compile>
-    <Compile Include="IService1.cs" />
+    <Compile Include="MyService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\HostBridge.Abstractions\HostBridge.Abstractions.csproj">
@@ -84,8 +79,16 @@
     <ProjectReference Include="..\..\src\HostBridge.Core\HostBridge.Core.csproj">
       <Name>HostBridge.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\HostBridge.Diagnostics\HostBridge.Diagnostics.csproj">
+      <Project>{dc8e16f8-9f34-46e7-b6f8-65e99b813be4}</Project>
+      <Name>HostBridge.Diagnostics</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\HostBridge.Wcf\HostBridge.Wcf.csproj">
       <Name>HostBridge.Wcf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HostBridge.Examples.Common\HostBridge.Examples.Common.csproj">
+      <Project>{213cb07a-8b3f-41e5-9f51-db5a99b82cda}</Project>
+      <Name>HostBridge.Examples.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +98,9 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

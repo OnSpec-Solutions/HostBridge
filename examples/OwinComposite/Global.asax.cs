@@ -1,20 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
-using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
-using System.Web.Http;
+using HostBridge.Diagnostics;
 
 namespace OwinComposite
 {
     public class Global : HttpApplication
     {
-        void Application_Start(object sender, EventArgs e)
+        protected void Application_Start(object sender, EventArgs e)
         {
-            // Code that runs on application startup
-            GlobalConfiguration.Configure(WebApiConfig.Register);
+            // OWIN Startup handles all wiring.
+        }
+
+#if DEBUG        
+        private static volatile bool s_verified;
+#endif
+        protected void Application_BeginRequest()
+        {
+#if DEBUG
+            if (s_verified) return;
+            new HostBridgeVerifier()
+                .Add(AspNetChecks.VerifyAspNet)
+                .ThrowIfCritical();
+            s_verified = true;
+#endif
         }
     }
 }

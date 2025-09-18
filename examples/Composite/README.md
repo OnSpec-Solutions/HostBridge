@@ -13,9 +13,10 @@ This project demonstrates multiple classic stacks coexisting in one IIS site.
 **Global.asax.cs**
 
 ```csharp
-protected void Application_Start()
+protected void Application_Start(object sender, EventArgs e)
 {
     var host = new LegacyHostBuilder()
+        .ConfigureLogging(lb => lb.AddConsole())
         .ConfigureServices((ctx, services) =>
         {
             services.AddOptions();
@@ -24,19 +25,27 @@ protected void Application_Start()
         .Build();
 
     AspNetBootstrapper.Initialize(host);
+    HB.Initialize(host);
     HostBridgeWcf.Initialize(host);
 
-    DependencyResolver.SetResolver(new MvcDependencyResolver());
-    GlobalConfiguration.Configure(cfg =>
-    {
-        cfg.DependencyResolver = new WebApiDependencyResolver();
-        WebApiConfig.Register(cfg);
-    });
+    GlobalConfiguration.Configure(WebApiConfig.Register);
+    GlobalConfiguration.Configuration.DependencyResolver = new WebApiDependencyResolver();
+    GlobalConfiguration.Configuration.Services.Replace(typeof(IHttpControllerActivator), new HostBridgeControllerActivator());
+}
 
+#if DEBUG
+private static volatile bool s_verified;
+#endif
+protected void Application_BeginRequest()
+{
+#if DEBUG
+    if (s_verified) return;
     new HostBridgeVerifier()
         .Add(AspNetChecks.VerifyAspNet)
         .Add(WcfChecks.VerifyWcf)
         .ThrowIfCritical();
+    s_verified = true;
+#endif
 }
 ```
 

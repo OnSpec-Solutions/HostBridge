@@ -13,14 +13,23 @@ This project demonstrates a DI-driven Windows Service using HostBridge.
 **MyWindowsService.cs**
 
 ```csharp
-public sealed class MyWindowsService : HostBridgeServiceBase
+public class MyWindowsService : HostBridgeServiceBase
 {
     protected override ILegacyHost BuildHost()
     {
-        var services = new ServiceCollection();
-        services.AddOptions();
-        services.AddSingleton<IMyWorker, MyWorker>();
-        return new LegacyHost(services.BuildServiceProvider());
+        var host = new LegacyHostBuilder()
+            .ConfigureLogging(lb => lb.AddConsole())
+            .ConfigureServices((ctx, services) =>
+            {
+                services.AddOptions();
+                services.AddHostedService<HeartbeatService>();
+                services.AddSingleton<IWorker, Worker>();
+            })
+            .Build();
+        
+        HB.Initialize(host);
+
+        return host;
     }
 }
 ```
@@ -30,17 +39,20 @@ public sealed class MyWindowsService : HostBridgeServiceBase
 ```csharp
 static void Main(string[] args)
 {
-    using var svc = new MyWindowsService();
-
+    using var service = new MyWindowsService();
+            
 #if DEBUG
-    svc.Start(args); Console.ReadLine(); svc.Stop();
-#else
-    ServiceBase.Run(svc);
-#endif
-
+    service.Start(args);
+            
     new HostBridgeVerifier()
-        .Add(() => WindowsServiceChecks.VerifyWindowsService(!Environment.UserInteractive))
-        .Log(HB.Get<ILogger<Program>>());
+        .Add(() => WindowsServiceChecks.VerifyWindowsService(runningAsService: !Environment.UserInteractive))
+        .Log(HB.Get<ILogger<MyWindowsService>>());
+    
+    Console.ReadLine();
+    service.Stop();
+#else
+    ServiceBase.Run(service);
+#endif
 }
 ```
 

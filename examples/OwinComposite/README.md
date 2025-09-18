@@ -27,6 +27,7 @@ public class Startup
     public void Configuration(IAppBuilder app)
     {
         var host = new LegacyHostBuilder()
+            .ConfigureLogging(lb => lb.AddConsole())
             .ConfigureServices((ctx, services) =>
             {
                 services.AddOptions();
@@ -35,18 +36,15 @@ public class Startup
             .Build();
 
         AspNetBootstrapper.Initialize(host);
+        HB.Initialize(host);
+        HostBridgeWcf.Initialize(host);
 
-        // OWIN branch: per-request scope for Web API pipeline
         app.UseHostBridgeRequestScope();
 
         var config = new HttpConfiguration();
-        config.DependencyResolver = new HostBridge.Owin.WebApiOwinAwareResolver();
-        config.MapHttpAttributeRoutes();
+        config.DependencyResolver = new WebApiOwinAwareResolver();
+        WebApiConfig.Register(config);
         app.UseWebApi(config);
-
-        new HostBridgeVerifier()
-            .Add(AspNetChecks.VerifyAspNet)
-            .ThrowIfCritical();
     }
 }
 ```

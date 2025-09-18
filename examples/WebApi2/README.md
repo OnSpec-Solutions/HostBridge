@@ -10,27 +10,41 @@ This project demonstrates Web API 2 controllers resolving from HostBridge DI.
 
 ## Wiring
 
-**WebApiConfig.cs**
+**Global.asax.cs**
 
 ```csharp
-public static class WebApiConfig
+protected void Application_Start()
 {
-    public static void Register(HttpConfiguration config)
-    {
-        var host = new LegacyHostBuilder()
-            .ConfigureServices((ctx, services) => { services.AddScoped<IMyScoped, MyScoped>(); })
-            .Build();
+    var host = new LegacyHostBuilder()
+        .ConfigureLogging(lb => lb.AddConsole())
+        .ConfigureServices((ctx, services) =>
+        {
+            services.AddOptions();
+            services.AddScoped<IMyScoped, MyScoped>();
+        })
+        .Build();
 
-        AspNetBootstrapper.Initialize(host);
-
-        config.DependencyResolver = new WebApiDependencyResolver();
-
-        new HostBridgeVerifier()
-            .Add(AspNetChecks.VerifyAspNet)
-            .Log(HB.Get<ILogger<WebApiConfig>>());
-
-        config.MapHttpAttributeRoutes();
-    }
+    AspNetBootstrapper.Initialize(host);
+    
+    GlobalConfiguration.Configure(WebApiConfig.Register);
+    GlobalConfiguration.Configuration.DependencyResolver = new WebApiDependencyResolver();
+    // Optional: If you prefer to not register controllers one at a time
+    GlobalConfiguration.Configuration.Services.Replace(typeof(IHttpControllerActivator), new HostBridgeControllerActivator());
+}
+        
+#if DEBUG        
+private static volatile bool s_aspNetVerified;
+#endif
+        
+protected void Application_BeginRequest()
+{
+#if DEBUG
+    if (s_aspNetVerified) return;
+    new HostBridgeVerifier()
+        .Add(AspNetChecks.VerifyAspNet)
+        .ThrowIfCritical();
+    s_aspNetVerified = true;
+#endif 
 }
 ```
 

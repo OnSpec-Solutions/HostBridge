@@ -1,20 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
-using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
 using System.Web.Http;
+using System.Web.Http.Dispatcher;
+using HostBridge.AspNet;
+using HostBridge.Core;
+using HostBridge.Diagnostics;
+using HostBridge.Examples.Common;
+using HostBridge.Wcf;
+using HostBridge.WebApi2;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Composite
 {
     public class Global : HttpApplication
     {
-        void Application_Start(object sender, EventArgs e)
+        protected void Application_Start(object sender, EventArgs e)
         {
-            // Code that runs on application startup
+            var host = new LegacyHostBuilder()
+                .ConfigureLogging(lb => lb.AddConsole())
+                .ConfigureServices((ctx, services) =>
+                {
+                    services.AddOptions();
+                    services.AddScoped<IMyScoped, MyScoped>();
+                })
+                .Build();
+
+            AspNetBootstrapper.Initialize(host);
+            HB.Initialize(host);
+            HostBridgeWcf.Initialize(host);
+
             GlobalConfiguration.Configure(WebApiConfig.Register);
+            GlobalConfiguration.Configuration.DependencyResolver = new WebApiDependencyResolver();
+            GlobalConfiguration.Configuration.Services.Replace(typeof(IHttpControllerActivator), new HostBridgeControllerActivator());
+        }
+
+#if DEBUG
+        private static volatile bool s_verified;
+#endif
+        protected void Application_BeginRequest()
+        {
+#if DEBUG
+            if (s_verified) return;
+            new HostBridgeVerifier()
+                .Add(AspNetChecks.VerifyAspNet)
+                .Add(WcfChecks.VerifyWcf)
+                .ThrowIfCritical();
+            s_verified = true;
+#endif
         }
     }
 }

@@ -17,27 +17,27 @@ static async Task Main()
 {
     var host = new LegacyHostBuilder()
         .ConfigureAppConfiguration(cfg => cfg.AddHostBridgeAppConfig())
-        .ConfigureServices((ctx, services) =>
+        .ConfigureLogging(lb => lb.AddConsole())
+        .ConfigureServices((_, services) =>
         {
             services.AddOptions();
-            services.AddScoped<IMyScoped, MyScoped>();
-            services.AddHostedService<Worker>();
+            services.AddHostedService<HeartbeatService>();
+            services.AddSingleton<IWorker, Worker>();
+            services.AddScoped<IOperation, Operation>();
         })
         .Build();
 
+    // Initialize the accessor once
     HB.Initialize(host);
 
-    // Diagnostics – fail fast in dev/test
-    new HostBridgeVerifier()
-        .Add(AspNetChecks.VerifyAspNet) // or project-appropriate checks
-        .ThrowIfCritical();
-
-    using (Correlation.Begin(HB.Get<ILogger<Program>>()))
+    // Example: run a scoped “operation” in console land
+    using (HB.BeginScope())
     {
-        var worker = HB.Get<Worker>();
-        await worker.DoWork();
+        var worker = HB.Get<IWorker>();
+        await worker.RunAsync();
     }
 
+    // Or run until canceled with a shutdown grace period
     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
     await host.RunAsync(cts.Token, shutdownTimeout: TimeSpan.FromSeconds(5));
 }
