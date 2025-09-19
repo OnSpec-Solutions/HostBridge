@@ -1,5 +1,24 @@
 ﻿<Project>
-    <ItemGroup Condition=" '$(MSBuildProjectName)' != '' and !$(MSBuildProjectName.EndsWith('.Tests')) ">
+    <!-- Optionally load full PublicKey for strong-named InternalsVisibleTo from eng/HostBridge.publickey or MSBuild property HostBridgePublicKey -->
+    <PropertyGroup>
+        <_HB_PublicKeyFile>$(MSBuildThisFileDirectory)HostBridge.publickey</_HB_PublicKeyFile>
+        <HostBridgePublicKey Condition=" '$(HostBridgePublicKey)' == '' and Exists('$(_HB_PublicKeyFile)') ">
+            %(PublicKeyFromFile.Identity)
+        </HostBridgePublicKey>
+    </PropertyGroup>
+    <ItemGroup Condition=" Exists('$(_HB_PublicKeyFile)') ">
+        <PublicKeyFromFile Include="$([System.IO.File]::ReadAllText('$(_HB_PublicKeyFile)'))" />
+    </ItemGroup>
+
+    <!-- With PublicKey (for strong-named assemblies) -->
+    <ItemGroup Condition=" '$(MSBuildProjectName)' != '' and !$(MSBuildProjectName.EndsWith('.Tests')) and '$(SignAssembly)' == 'true' and '$(HostBridgePublicKey)' != '' ">
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>$(MSBuildProjectName).Tests, PublicKey=$(HostBridgePublicKey)</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <!-- Fallback without PublicKey (only when not signing) -->
+    <ItemGroup Condition=" '$(MSBuildProjectName)' != '' and !$(MSBuildProjectName.EndsWith('.Tests')) and '$(SignAssembly)' != 'true' ">
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
             <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
         </AssemblyAttribute>

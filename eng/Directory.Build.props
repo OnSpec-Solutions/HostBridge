@@ -10,11 +10,24 @@
     <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src')) and !$(MSBuildProjectName.EndsWith('.Tests')) and !$(MSBuildProjectDirectory.Contains('examples'))">
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
+        <!-- Strong-name signing for src libraries (Release only) -->
+        <SignAssembly Condition=" '$(Configuration)' == 'Release' ">true</SignAssembly>
+        <AssemblyOriginatorKeyFile Condition=" '$(Configuration)' == 'Release' ">$(MSBuildThisFileDirectory)HostBridge.snk</AssemblyOriginatorKeyFile>
+        <!-- Keep AssemblyVersion stable to reduce binding churn -->
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <!-- Package license expression for NuGet -->
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <!-- Enable central package management for src projects -->
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <!-- relax tests -->
     <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <!-- Ensure tests are not strong-name signed -->
+        <SignAssembly>false</SignAssembly>
+        <!-- Disable central package management for tests (they keep explicit versions for now) -->
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <!-- revert for example apps -->
@@ -22,5 +35,9 @@
         <LangVersion>default</LangVersion>
         <Nullable>disable</Nullable>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <!-- Do not sign example apps -->
+        <SignAssembly>false</SignAssembly>
+        <!-- Disable central package management for examples (they keep explicit versions for now) -->
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 </Project>
