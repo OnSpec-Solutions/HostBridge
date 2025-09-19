@@ -1,4 +1,14 @@
-﻿github: yourusername
-patreon: yourpatreon
-ko_fi: yourkofi
-custom: ["https://buymeacoffee.com/yourname"]
+﻿# GitHub will automatically render the Sponsor button using these links.
+# Replace the placeholders with your actual handles/URLs when ready.
+
+# Example: github: onspec-solutions   # (GitHub Sponsors handle, if enabled)
+github: []  # leave empty if not using GitHub Sponsors yet
+
+# Open Collective, Ko-fi, Patreon, custom Stripe, or any other donation URL
+# You can list multiple links; they'll all appear under the Sponsor button.
+custom:
+  - "https://opencollective.com/REPLACE_WITH_YOUR_COLLECTIVE"
+  - "https://github.com/REPO_OWNER/REPO_NAME#funding"   # fallback to README section
+  # - "https://ko-fi.com/REPLACE"
+  # - "https://buy.stripe.com/REPLACE"
+  # - "https://patreon.com/REPLACE"
