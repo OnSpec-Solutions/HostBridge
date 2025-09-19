@@ -4,9 +4,9 @@
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](SECURITY.md)
 [![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Contributor%20Covenant-ff69b4.svg)](CODE_OF_CONDUCT.md)
 [![Funding](https://img.shields.io/badge/Funding-Donate-orange.svg)](#funding)
-[![Sponsor](https://img.shields.io/badge/sponsor-❤-pink)](https://github.com/sponsors/yourusername)
 [![Build](https://github.com/OnSpec-Solutions/HostBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/OnSpec-Solutions/HostBridge/actions/workflows/ci.yml)
 <!-- Optional (uncomment when enabled)
+[![Sponsor](https://img.shields.io/badge/sponsor-❤-pink)](https://github.com/sponsors/yourusername)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OnSpec-Solutions/HostBridge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/OnSpec-Solutions/HostBridge)
 -->
 
@@ -291,10 +291,15 @@ Contact: [community@onspec.solutions](mailto:community@onspec.solutions)
 
 ## Funding
 
-Free forever, no paywall.
+💡 **HostBridge is free forever — no paywalls, no feature gates.**
 
-* GitHub Sponsors
-* Open Collective (add link)
-* Other links (Stripe/Ko-fi/Patreon)
+If it saved you a late night, helped squash a `NullReferenceException`, or just kept your legacy app sane, you can:
 
-**Bucket is full rule:** funding capped at published goal.
+<!--
+- ⭐ [Sponsor on GitHub](https://github.com/sponsors/jeffrey-onspec) (recurring support)
+-->
+- ☕ [Buy a coffee on Ko-fi](https://ko-fi.com/yourhandle) (one-time thank-you)
+- (Future) Sponsor on GitHub (recurring support)
+- (Future) Open Collective for transparent budgets once we hit traction
+
+**Bucket is full rule:** when current goals are met, we pause donations until the next plan is posted.
