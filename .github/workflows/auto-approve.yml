@@ -1,0 +1,28 @@
+name: Auto-approve (maintainer only)
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  approve:
+    if: >
+      github.event.label.name == 'auto-approve' &&
+      github.event.pull_request.user.login == 'jeffrey-onspec'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Approve via bot
+        env:
+          GH_TOKEN: ${{ secrets.APPROVER_BOT_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          curl -sSL -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$OWNER/$REPO/pulls/$PR/reviews \
+            -d '{"event":"APPROVE","body":"Automated approval by Approver Bot (on maintainer label)."}'
