@@ -2,11 +2,18 @@
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build_test_pack:
@@ -19,6 +26,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # full history helps when packing with SourceLink/RepositoryCommit
+          fetch-depth: 0
 
       - name: Setup .NET SDK (8.x)
         uses: actions/setup-dotnet@v4
@@ -36,12 +46,12 @@ jobs:
       - name: Restore (solution)
         run: dotnet restore .\HostBridge.sln
 
-      - name: Build src (Release, signed)
+      - name: Build src (Release, warn-as-error)
         shell: pwsh
         run: |
           Get-ChildItem .\src -Recurse -Filter *.csproj | ForEach-Object {
             Write-Host "Building $($_.FullName)"
-            dotnet build $_.FullName -c Release --no-restore
+            dotnet build $_.FullName -c Release --no-restore -warnaserror
           }
 
       - name: Test (Debug) - all test projects
@@ -51,10 +61,10 @@ jobs:
           $projects = Get-ChildItem .\tests -Recurse -Filter *.csproj | ForEach-Object { $_.FullName }
           foreach ($p in $projects) {
             Write-Host "Testing $p"
-            dotnet test $p -c Debug --logger "trx;LogFileName=$(Split-Path -LeafBase $p).trx"
+            dotnet test $p -c Debug --no-build --logger "trx;LogFileName=$(Split-Path -LeafBase $p).trx"
           }
-        # Note: Debug tests ensure InternalsVisibleTo and test-only hooks are available without strong-name public key.
 
+      # Pack for validation on all events; only upload artifacts on push (not PR)
       - name: Pack src (Release)
         shell: pwsh
         run: |
@@ -64,17 +74,28 @@ jobs:
             dotnet pack $_.FullName -c Release --no-build -o .\artifacts\nuget
           }
 
-      - name: Upload NuGet artifacts
+      - name: Upload NuGet artifacts (pushes only)
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: artifacts/nuget/*.nupkg
+          if-no-files-found: error
+          retention-days: 7
+
+      # Dependency review works on public repos; harmless on private (no-op).
+      - name: Dependency Review (PRs only, public repos)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
 
   publish:
     name: Publish to NuGet.org
     runs-on: windows-latest
     needs: build_test_pack
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
