@@ -4,25 +4,37 @@
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- Work around NuGet static graph quirks on some Windows runners with mixed SDK/classic projects -->
+        <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
     </PropertyGroup>
 
-    <!-- Enable XML docs for libraries in src (not tests/examples) -->
-    <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src')) and !$(MSBuildProjectName.EndsWith('.Tests')) and !$(MSBuildProjectDirectory.Contains('examples'))">
+    <!-- Enable XML docs + packaging metadata for libraries in src (not tests/examples) -->
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]src([\\/]|$)')) AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '\\.Tests$')) AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]examples([\\/]|$)'))">
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
-        <!-- Strong-name signing for src libraries (Release only) -->
-        <SignAssembly Condition=" '$(Configuration)' == 'Release' ">true</SignAssembly>
-        <AssemblyOriginatorKeyFile Condition=" '$(Configuration)' == 'Release' ">$(MSBuildThisFileDirectory)HostBridge.snk</AssemblyOriginatorKeyFile>
         <!-- Keep AssemblyVersion stable to reduce binding churn -->
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <!-- Package license expression for NuGet -->
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <!-- Enable central package management for src projects -->
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <!-- SourceLink / symbols -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+
+    <!-- Conditional strong-name signing for src in Release (only when key is present) -->
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]src([\\/]|$)')) AND '$(Configuration)' == 'Release' AND Exists('$(MSBuildThisFileDirectory)HostBridge.snk')">
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)HostBridge.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
 
     <!-- relax tests -->
-    <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '\\.Tests$'))">
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <!-- Ensure tests are not strong-name signed -->
         <SignAssembly>false</SignAssembly>
@@ -31,7 +43,7 @@
     </PropertyGroup>
 
     <!-- revert for example apps -->
-    <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('examples'))">
+    <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]examples([\\/]|$)'))">
         <LangVersion>default</LangVersion>
         <Nullable>disable</Nullable>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

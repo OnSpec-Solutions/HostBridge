@@ -20,24 +20,27 @@ public sealed class CorrelationHttpModule : IHttpModule
 
     public void Init(HttpApplication app)
     {
-        app.BeginRequest += (_, _) =>
-        {
-            // Root provider (already set by AspNetBootstrapper)
-            var root = AspNetBootstrapper.RootServices!;
-            var logger = root.GetRequiredService<ILoggerFactory>().CreateLogger("Correlation");
+        app.BeginRequest += (_, _) => OnBegin();
+        app.EndRequest += (_, _) => OnEnd();
+    }
 
-            const string header = Constants.CorrelationHeaderName;
-            var incoming = HttpContext.Current.Request.Headers[header];
-            var scope = Correlation.Begin(logger, incoming, header);
+    internal static void OnBegin()
+    {
+        // Root provider (already set by AspNetBootstrapper)
+        var root = AspNetBootstrapper.RootServices!;
+        var logger = root.GetRequiredService<ILoggerFactory>().CreateLogger("Correlation");
 
-            HttpContext.Current.Items[Cookie] = scope;
-        };
+        const string header = Constants.CorrelationHeaderName;
+        var incoming = HttpContext.Current.Request.Headers[header];
+        var scope = Correlation.Begin(logger, incoming, header);
 
-        app.EndRequest += (_, _) =>
-        {
-            (HttpContext.Current.Items[Cookie] as IDisposable)?.Dispose();
-            HttpContext.Current.Items.Remove(Cookie);
-        };
+        HttpContext.Current.Items[Cookie] = scope;
+    }
+
+    internal static void OnEnd()
+    {
+        (HttpContext.Current.Items[Cookie] as IDisposable)?.Dispose();
+        HttpContext.Current.Items.Remove(Cookie);
     }
 
     public void Dispose() { }
