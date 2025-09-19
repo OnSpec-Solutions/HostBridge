@@ -3,6 +3,7 @@ using HostBridge.Tests.Common.Fakes;
 
 namespace HostBridge.Core.Tests;
 
+[Collection("HB.Serial")]
 public class HBTests
 {
     private IServiceProvider _root = null!;
@@ -85,13 +86,36 @@ public class HBTests
 #endif
     }
 
+    private static readonly object _resetLock = new();
+
     private void GivenInitializedWith(Action<IServiceCollection> configure)
     {
-        GivenHBReset();
+        // Ensure isolation even in Release builds where HB._ResetForTests may not exist
+        ResetHBUnsafe();
         var services = new ServiceCollection();
         configure(services);
         _root = services.BuildServiceProvider();
         HB.Initialize(new FakeLegacyHost(_root));
+    }
+
+    private static void ResetHBUnsafe()
+    {
+#if DEBUG
+        try { HB._ResetForTests(); return; } catch { }
+#endif
+        lock (_resetLock)
+        {
+            var hbType = typeof(HB);
+            var sRootField = hbType.GetField("s_root", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            sRootField!.SetValue(null, null);
+            var ambientField = hbType.GetField("Ambient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var ambient = ambientField!.GetValue(null);
+            if (ambient is not null)
+            {
+                var valueProp = ambient.GetType().GetProperty("Value");
+                valueProp!.SetValue(ambient, null);
+            }
+        }
     }
 
     private void GivenInitializedWithHelloString() => GivenInitializedWith(s => s.AddSingleton<string>("hello"));
