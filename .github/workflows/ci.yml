@@ -61,7 +61,7 @@ jobs:
           $projects = Get-ChildItem .\tests -Recurse -Filter *.csproj | ForEach-Object { $_.FullName }
           foreach ($p in $projects) {
             Write-Host "Testing $p"
-            dotnet test $p -c Debug --no-build --logger "trx;LogFileName=$(Split-Path -LeafBase $p).trx"
+            dotnet test $p -c Debug --logger "trx;LogFileName=$(Split-Path -LeafBase $p).trx"
           }
 
       # Pack for validation on all events; only upload artifacts on push (not PR)
@@ -74,12 +74,13 @@ jobs:
             dotnet pack $_.FullName -c Release --no-build -o .\artifacts\nuget
           }
 
-      - name: Upload NuGet artifacts (pushes only)
-        if: github.event_name == 'push'
+      - name: Upload NuGet artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
-          path: artifacts/nuget/*.nupkg
+          path: |
+            artifacts/nuget/*.nupkg
+            artifacts/nuget/*.snupkg
           if-no-files-found: error
           retention-days: 7
 
@@ -110,6 +111,7 @@ jobs:
 
       - name: Push packages to NuGet.org
         env:
+          # Accept either secret name: NUGET_API_KEY
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         shell: pwsh
         run: |

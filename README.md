@@ -269,7 +269,9 @@ Call `StopAsync` at shutdown to flush hosted services and logs.
 * Workflow: `.github/workflows/ci.yml`
 * Runs on Windows
 * Builds `src/*` in Release, runs tests in Debug
+* Uses Nerdbank.GitVersioning (version.json) – prerelease versions on branches/PRs; stable on tags matching `vMAJOR.MINOR.PATCH`
 * Packs NuGet on tag push (`v*`) → publishes to NuGet.org
+* Uploads `.nupkg` and `.snupkg` as workflow artifacts on PRs and pushes
 * Needs `NUGET_API_KEY` secret configured
 
 ---

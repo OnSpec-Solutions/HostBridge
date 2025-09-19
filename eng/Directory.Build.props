@@ -12,8 +12,6 @@
     <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]src([\\/]|$)')) AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '\\.Tests$')) AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]examples([\\/]|$)'))">
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
-        <!-- Keep AssemblyVersion stable to reduce binding churn -->
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <!-- Package license expression for NuGet -->
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <!-- Enable central package management for src projects -->
@@ -26,6 +24,11 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
+
+    <!-- Add NBGV to src projects (dev dependency) -->
+    <ItemGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]src([\\/]|$)'))">
+        <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+    </ItemGroup>
 
     <!-- Conditional strong-name signing for src in Release (only when key is present) -->
     <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[\\/]src([\\/]|$)')) AND '$(Configuration)' == 'Release' AND Exists('$(MSBuildThisFileDirectory)HostBridge.snk')">
