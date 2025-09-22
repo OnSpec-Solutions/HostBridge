@@ -5,9 +5,9 @@
 [![Code of Conduct](https://img.shields.io/badge/Code%20of%20Conduct-Contributor%20Covenant-ff69b4.svg)](CODE_OF_CONDUCT.md)
 [![Funding](https://img.shields.io/badge/Funding-Donate-orange.svg)](#funding)
 [![Build](https://github.com/OnSpec-Solutions/HostBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/OnSpec-Solutions/HostBridge/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OnSpec-Solutions/HostBridge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/OnSpec-Solutions/HostBridge)
 <!-- Optional (uncomment when enabled)
 [![Sponsor](https://img.shields.io/badge/sponsor-❤-pink)](https://github.com/sponsors/yourusername)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OnSpec-Solutions/HostBridge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/OnSpec-Solutions/HostBridge)
 -->
 
 # HostBridge
@@ -298,7 +298,7 @@ If it saved you a late night, helped squash a `NullReferenceException`, or just 
 <!--
 - ⭐ [Sponsor on GitHub](https://github.com/sponsors/jeffrey-onspec) (recurring support)
 -->
-- ☕ [Buy a coffee on Ko-fi](https://ko-fi.com/yourhandle) (one-time thank-you)
+- ☕ [Buy a coffee on Ko-fi](https://ko-fi.com/jeffreyonspec) (one-time thank-you)
 - (Future) Sponsor on GitHub (recurring support)
 - (Future) Open Collective for transparent budgets once we hit traction
 
