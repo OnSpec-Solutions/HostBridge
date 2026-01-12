@@ -1,4 +1,4 @@
-﻿name: Windows Build, Test, and Pack
+name: Windows Build, Test, and Pack
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # full history helps when packing with SourceLink/RepositoryCommit
           fetch-depth: 0
